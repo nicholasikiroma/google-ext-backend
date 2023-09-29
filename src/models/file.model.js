@@ -7,8 +7,20 @@ const videosSchema = new Schema({
   },
   dateCreated: {
     type: Date,
-    default: Date()
-  }
+    default: Date.now(),
+  },
+  fileSize: {
+    type: Number,
+    required: [true, "File size must be provided"],
+  },
+  videoUrl: {
+    type: String,
+    required: [true, "Provide video url"],
+  },
+  mimeType: {
+    type: String,
+    required: [true, "Provide mimetype"],
+  },
 });
 
 const File = model("File", videosSchema);
