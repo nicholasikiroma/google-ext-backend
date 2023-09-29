@@ -1,51 +1,35 @@
-# HNG Task Two
+# Backend For Chrome Extension
 
 ## Description
 
-A simple REST API capable of CRUD operations on a "person" resource that interfaces with a MongoDD database.
-
-## UML and E-R Diagram
-
-![ULM and E-R Diagram](./public/UML.png)
-
-## Available Endpoints
-
-| Route | Description |
-| --- | ----------- |
-| `GET` /api/:userId | Fetch a user from the database |
-| `POST` /api | Create a new user |
-| `PUT` /api/:userId | Update a user |
-| `DELETE` /api/:userId | Delete a user |
-
-## API Documentation
-
-- [Documentation](./DOCUMENTATION.md)
+Handles storage and retrieval of videos saved on cloud environment.
 
 ## Usage
 
-clone project repository:
+**Clone Repository**:
 
 ```bash
-git clone https://github.com/nicholasikiroma/crudApp.git
-cd crudApp
+git clone https://github.com/google-ext-backend.git
+cd google-ext-backend
 ```
 
-Install dependencies:
+**Install dependencies**:
 
 ```bash
-npm install
+npm i
 ```
 
-Create a `.env` with the values:
+**Create `.env` file**:
+
+```text
+DATABASE_URL=mongodb+srv://nicholasikiroma:rC3UliJaX0h0CK9a@cluster0.gkap2nd.mongodb.net/persons?retryWrites=true&w=majority
+BASE_URL=http://localhost:3001
+PORT=3001
+NODE_ENV=development
+```
+
+**Start Server**:
 
 ```bash
-DATABASE_URL=<replace-with-mongodb-connection-string>
+npm run dev
 ```
-
-Start up server:
-
-```bash
-npm run start
-```
-
-The API will be available at <http://localhost:PORT/api>
