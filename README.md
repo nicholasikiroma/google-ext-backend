@@ -22,7 +22,7 @@ npm i
 **Create `.env` file**:
 
 ```text
-DATABASE_URL=mongodb+srv://nicholasikiroma:rC3UliJaX0h0CK9a@cluster0.gkap2nd.mongodb.net/persons?retryWrites=true&w=majority
+DATABASE_URL=<replace-with-db-url>
 BASE_URL=http://localhost:3001
 PORT=3001
 NODE_ENV=development
