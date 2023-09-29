@@ -1,152 +1,102 @@
-# API Documentation
+# API Title: Video Upload and Playback Service API
 
-This document provides detailed information about the API endpoints, request/response formats, sample usage, limitations, and setup instructions.
+**Description**: This API allows users to upload videos and play them through a web interface.
 
-## API Endpoints
+**Base URL**: `https://localhost:3000`
 
-### 1. Fetch all videos
+**Endpoints**:
 
-- **Endpoint:** `/api/videos`
-- **Method:** `GET`
-- **Access:** Public
+1. **Upload Video**
+   - **Endpoint**: `/api/videos`
+   - **Method**: POST
+   - **Request Format**:
+     - Content-Type: multipart/form-data
+     - Body: File (Video File)
 
-#### Request
+    ```json
+     {
+      "value": "upload-videos"
+     }
+     ```
 
-No request body is required.
+   - **Response Format**:
+     - Status Code: 200 OK
+     - Body: None
+   - **Description**: Upload a video file to the server. The uploaded file will be stored on the server.
 
-#### Response
+2. **Render Video**
+   - **Endpoint**: `/videos/:fileName`
+   - **Method**: GET
+   - **Request Format**:
+     - URL Parameter: fileName (string) - The unique identifier of the uploaded video.
+   - **Response Format**:
+     - Status Code: 200 OK
+     - Body: Video stream.
+   - **Description**: Retrieve a vidoe.
 
-- `200 OK` if videos are found:
+3. **Fetch all videos**
+   - **Endpoint**: `/videos`
+   - **Method**: GET
+   - **Request Format**:
+     - No request params or body.
+   - **Response Format**:
+     - Status Code: 200 OK
+     - Body: JSON
 
-  ```json
-  {
-    "data": {
-      "_id": "1234567890",
-      "name": "John Doe",
-      // other user properties
-    }
-  }
-  ```
+     ```json
+     {
+      "data": [
+        {
+          "fileName": "example.mp4",
+          "streamLink": "http://localhost:3000/api/videos/example.mp4"
+        },
+        {
+          "fileName": "example-two.mp4",
+          "streamLink": "http://localhost:3000/api/videos/example-two.mp4"
+        } 
+      ]
+     }
+     ```
 
-- `500 Internal Server Error` for any other server-related errors.
+   - **Description**: Retrieve a vidoe.
 
-### 2. Upload a video file
+**Example Usage**:
 
-- **Endpoint:** `/api`
-- **Method:** `POST`
-- **Access:** Public
+- Uploading a video:
+  - Request:
 
-#### Request
+    ```json
+    POST https://your-api-domain.com/api/upload
+    Content-Type: multipart/form-data
+    Body: (Video File)
+    ```
 
-- Request Body:
+  - Response:
 
-  ```json
-  {
-    "name": "John Doe"
-    // other user properties
-  }
-  ```
+    ```json
+    200 OK
+    ```
 
-#### Response
+- Playing an uploaded video:
+  - Request:
 
-- `201 Created` if the person is successfully created:
+    ```json
+    GET https://your-api-domain.com/playback/:videoId
+    ```
 
-  ```json
-  {
-    "data": {
-      "_id": "1234567890",
-      "name": "John Doe",
-      // other user properties
-    }
-  }
-  ```
+  - Response:
 
-- `400 Bad Request` if the request body is missing or not valid:
+    ```json
+    200 OK
+    (HTML page with video player)
+    ```
 
-  ```json
-  {
-    "error": "Invalid or missing 'name' field"
-  }
-  ```
+**Error Handling**:
 
-- `500 Internal Server Error` for any other server-related errors.
+- If the video upload fails for any reason, return an appropriate error response (e.g., 400 Bad Request).
+- If the requested video doesn't exist, return a 404 Not Found error.
 
-## Sample Usage
+**Additional Information**:
 
-### Fetch Videos (GET)
-
-**Request:**
-
-```http
-GET /api/videos
-```
-
-**Response (200 OK):**
-
-```json
-{
-  "data": {
-    "_id": "1234567890",
-    "name": "John Doe",
-    // other user properties
-  }
-}
-```
-
-### Upload a video (POST)
-
-**Request:**
-
-```http
-POST /api/videos
-Content-Type: multipart/form
-
-{
-  "name": "Jane Smith"
-  // other user properties
-}
-```
-
-**Response (201 Created):**
-
-```json
-{
-  "data": {
-    "_id": "0987654321",
-    "name": "Jane Smith",
-    // other user properties
-  }
-}
-```
-
-## Testing
-
-API endpoints can be tested easily using [Postman's CLI tool](https://learning.postman.com/docs/postman-cli/postman-cli-installation/) with the command below
-
-```bash
-postman login --with-api-key <replace-with-postman-api-key>
-postman collection run 29666150-9190139c-e5db-45b3-88ea-a924541b801d
-```
-
-Postman CLI output:
-![postman test output](./public/postman-test.png)
-
-## Known Limitations and Assumptions
-
-- The API assumes that the `userId` parameter is a valid MongoDB ObjectId.
-- No authentication or authorization mechanisms are implemented (public access).
-- Initial request to server may delay a bit because Render server instances are spinned down after some minutes of inactivity.
-
-## Setup
-
-To set up and deploy the API locally or on a server, follow these steps:
-
-1. Clone the repository containing the API code.
-2. Install the required dependencies using a package manager like npm or yarn.
-3. Configure the MongoDB connection string in the `.env` file.
-4. Start the API server using the appropriate command (e.g., `npm run start`).
-5. The API will be available at the specified base URL (e.g., `http://localhost:PORT`).
-
-<mark>For more detailed setup instructions see</mark>:  [README.md](./README.md)
-
-Ensure that you have Node.js and MongoDB installed on your system before proceeding with the setup.
+- This API does not require authentication, as per the task requirements.
+- The uploaded videos are stored on the server's file system.
