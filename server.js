@@ -7,7 +7,7 @@ if (isDevelopment) {
     console.log(`Dev server running on port ${PORT}`);
   });
 } else {
-  // connectDB();
+  connectDB();
   app.listen(PORT, () => {
     console.log(`Prod server running on port ${PORT}`);
   });

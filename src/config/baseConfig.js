@@ -5,3 +5,6 @@ export const DB_URL = process.env.DB_URL;
 export const isDevelopment = process.env.NODE_ENV === "development";
 export const BASE_URL = process.env.BASE_URL;
 export const PORT = process.env.PORT || 3000;
+export const CLOUD_NAME = process.env.CLOUD_NAME;
+export const SECRET_KEY = process.env.SECRET_KEY;
+export const API_KEY = process.env.API_KEY;

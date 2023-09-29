@@ -1,5 +1,5 @@
 import File from "../models/file.model.js";
-import { isDevelopment } from "../config/baseConfig.js";
+import { BASE_URL, isDevelopment } from "../config/baseConfig.js";
 import { fetchAllVideos, fetchFile } from "../utils/fetchLocalUploads.js";
 
 //@desc Return all locally stored videos to client
@@ -15,7 +15,12 @@ export const fetchVideos = async (req, res, next) => {
     }
   } else {
     // write code for production
-    res.send({ message: "Not yet implemented" });
+    try {
+      const videos = await File.find();
+      res.send({ data: videos });
+    } catch (err) {
+      next(err);
+    }
   }
 };
 
@@ -58,7 +63,14 @@ export const fetchSingleVideo = async (req, res, next) => {
     }
   } else {
     // write code to use cloudinary
-    res.send({ message: "Not yet implemented" });
+    const video = await File.findOne({ fileName: fileName });
+    if (video) {
+      res.send(video.videoUrl);
+    } else {
+      res.status(404);
+      const err = new Error("Video not found");
+      next(err);
+    }
   }
 };
 
@@ -77,7 +89,21 @@ export const uploadVideos = async (req, res, next) => {
         .send({ message: "File uploaded successfully", data: req.file });
     } else {
       // store to cloudinary and create entry in DB
-      res.send({ message: "Not yet implemented" });
+
+      const data = {
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        videoUrl: req.file.path, // change to cloudinary secure url
+        mimeType: req.file.mimetype,
+      };
+      try {
+        const newVideo = new File({ ...data });
+        await newVideo.save();
+        res.status(201).send({ data: newVideo });
+      } catch (err) {
+        res.status(500);
+        next(err);
+      }
     }
   }
 };

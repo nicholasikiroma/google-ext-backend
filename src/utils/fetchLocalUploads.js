@@ -61,6 +61,6 @@ export async function fetchFile(fileName, range = null) {
       return { file, fileSize };
     }
   } else {
-    throw new Error("File not found");
+    return "file not found";
   }
 }
