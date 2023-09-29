@@ -18,14 +18,36 @@ export const fetchVideos = async (req, res, next) => {
 //@access public
 export const fetchSingleVideo = async (req, res, next) => {
   const { fileName } = req.params;
+  const range = req.headers.range;
   if (!fileName) {
     const err = new Error("File name is missing");
     err.status_code = 404;
     next(err);
   }
-  res.setHeader("Content-Type", "video/mp4");
-  const file = await fetchFile(fileName);
-  file.pipe(res);
+
+  if (range) {
+    const { fileStream, chunkSize, start, end, fileSize } = await fetchFile(
+      fileName,
+      range
+    );
+
+    const head = {
+      "Content-Type": "video/mp4",
+      "Content-Length": chunkSize,
+      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+      "Accepted-Ranges": "bytes",
+    };
+    res.writeHead(206, head);
+    fileStream.pipe(res);
+  } else {
+    const { file, fileSize } = await fetchFile(fileName);
+    const head = {
+      "Content-Type": "video/mp4",
+      "Content-Length": fileSize,
+    };
+    res.writeHead(200, head);
+    file.pipe(res);
+  }
 };
 
 //@desc Store uploaded video to local disk
