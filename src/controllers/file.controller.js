@@ -1,6 +1,7 @@
 import File from "../models/file.model.js";
 import { BASE_URL, isDevelopment } from "../config/baseConfig.js";
 import { fetchAllVideos, fetchFile } from "../utils/fetchLocalUploads.js";
+import uploadCloud from "../utils/fileUpload.js"
 
 //@desc Return all locally stored videos to client
 //@route GET /api/videos
@@ -89,11 +90,13 @@ export const uploadVideos = async (req, res, next) => {
         .send({ message: "File uploaded successfully", data: req.file });
     } else {
       // store to cloudinary and create entry in DB
+	  const { video } = uploadCloud(req.file.path, req.file.originalname)
 
       const data = {
+		publicId: video.public_id,
         fileName: req.file.originalname,
         fileSize: req.file.size,
-        videoUrl: req.file.path, // change to cloudinary secure url
+        videoUrl: video.secure_url, // change to cloudinary secure url
         mimeType: req.file.mimetype,
       };
       try {
