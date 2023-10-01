@@ -2,12 +2,12 @@
 
 **Description**: This API allows users to upload videos and play them through a web interface.
 
-**Base URL**: `https://localhost:3000`
+**Base URL**: <http://localhost:3000/api>
 
 **Endpoints**:
 
-1. **Upload Video**
-   - **Endpoint**: `/api/videos`
+1. **Start recording**
+   - **Endpoint**: `/start-recording`
    - **Method**: POST
    - **Request Format**:
      - Content-Type: multipart/form-data
@@ -15,46 +15,58 @@
 
     ```json
      {
-      "value": "upload-videos"
+      "mimetype": "video/webm"
      }
      ```
 
-   - **Response Format**:
-     - Status Code: 200 OK
-     - Body: None
-   - **Description**: Upload a video file to the server. The uploaded file will be stored on the server.
-
-2. **Render Video**
-   - **Endpoint**: `/videos/:fileName`
-   - **Method**: GET
-   - **Request Format**:
-     - URL Parameter: fileName (string) - The unique identifier of the uploaded video.
-   - **Response Format**:
-     - Status Code: 200 OK
-     - Body: Video stream.
-   - **Description**: Retrieve a vidoe.
-
-3. **Fetch all videos**
-   - **Endpoint**: `/videos`
-   - **Method**: GET
-   - **Request Format**:
-     - No request params or body.
    - **Response Format**:
      - Status Code: 200 OK
      - Body: JSON
 
      ```json
      {
-      "data": [
-        {
-          "fileName": "example.mp4",
-          "streamLink": "http://localhost:3000/api/videos/example.mp4"
-        },
-        {
-          "fileName": "example-two.mp4",
-          "streamLink": "http://localhost:3000/api/videos/example-two.mp4"
-        } 
-      ]
+      "sessionId": "ashd-2u48-wjdn"
+     }
+
+   - **Description**: Generate upload session with server.
+
+2. **Record video chunks**
+   - **Endpoint**: `/record-data/:sessionId`
+   - **Method**: POST
+   - **Request Format**:
+     - URL Parameter: sessionId (UUID) - The unique identifier of the uploaded video.
+     - Body: dataChunk(base64 string) - Blob object converted to base64
+
+     ```json
+     {
+        "dataChunk": "data"
+     }
+     ```
+
+   - **Response Format**:
+     - Status Code: 200 OK
+     - Body: JSON
+
+     ```json
+     {
+        "message": "Data received and saved"
+     }
+     ```
+
+   - **Description**: Send video chunks
+
+3. **Stop Recording**
+   - **Endpoint**: `/stop-recording/sessionId`
+   - **Method**: POST
+   - **Request Format**:
+     - URL Parameter: sessionId (UUID) - The unique identifier of the uploaded video.
+   - **Response Format**:
+     - Status Code: 200 OK
+     - Body: No
+
+     ```json
+     {
+       "message": "Recording stopped and saved"
      }
      ```
 
@@ -62,39 +74,60 @@
 
 **Example Usage**:
 
-- Uploading a video:
+- Start Recording:
   - Request:
 
     ```json
-    POST https://your-api-domain.com/api/upload
-    Content-Type: multipart/form-data
-    Body: (Video File)
+    POST https://your-api-domain.com/api/start-recording
+    Content-Type: application/json
+    Body: mimetype (ex "video/webm")
     ```
 
   - Response:
+  200 OK
 
     ```json
-    200 OK
+    {
+      "sessionId": "UUID string"
+    }
     ```
 
-- Playing an uploaded video:
+- Record Data:
   - Request:
 
     ```json
-    GET https://your-api-domain.com/playback/:videoId
+    POST https://your-api-domain.com/api/record-data/:sessionId
+    Content-Type: application/json
+    Body: dataChunk (base64 string)
     ```
 
   - Response:
+  200 OK
 
     ```json
-    200 OK
-    (HTML page with video player)
+    {
+      "message": "Data received and saved"
+    }
     ```
 
-**Error Handling**:
+- Stop recording:
+  - Request:
 
-- If the video upload fails for any reason, return an appropriate error response (e.g., 400 Bad Request).
-- If the requested video doesn't exist, return a 404 Not Found error.
+    ```json
+    POST https://api-domain.com/api/stop-recording/:sessionId
+    Content-Type: application/json
+    Body: No Body
+    ```
+
+  - Response:
+  200 OK
+
+    ```json
+    {
+      "message": "Recording received and saved",
+      "videoURL": "http://domain.com/video.mp4"
+    }
+    ```
 
 **Additional Information**:
 

@@ -1,112 +1,73 @@
-import File from "../models/file.model.js";
-import { BASE_URL, isDevelopment } from "../config/baseConfig.js";
-import { fetchAllVideos, fetchFile } from "../utils/fetchLocalUploads.js";
-import uploadCloud from "../utils/fileUpload.js"
+import { Readable } from "stream";
+import { Buffer } from "buffer";
+import {
+  createVideoStream,
+  generateUniqueSessionId,
+} from "../utils/helpers.js";
 
-//@desc Return all locally stored videos to client
-//@route GET /api/videos
+//@desc Start recording session with backend
+//@route POST /start-recording
 //@access public
-export const fetchVideos = async (req, res, next) => {
-  if (isDevelopment) {
-    try {
-      const videos = await fetchAllVideos();
-      if (videos) return res.status(200).send({ data: videos });
-    } catch (err) {
-      next(err);
-    }
-  } else {
-    // write code for production
-    try {
-      const videos = await File.find();
-      res.send({ data: videos });
-    } catch (err) {
-      next(err);
-    }
+export const startRecording = async (req, res, next) => {
+  try {
+    // Generate a unique session ID (you can use a UUID library for this)
+    const sessionId = generateUniqueSessionId();
+
+    // Store the session ID temporarily
+    activeSessions[sessionId] = {
+      videoStream: createVideoStream(sessionId),
+      mimetype: req.body.mimetype,
+    };
+
+    res.status(200).json({ sessionId });
+  } catch (err) {
+    next(err);
   }
 };
 
 //@desc Return a single video based in Node enviroment
-//@route GET /api/videos
+//@route POST /record-data/:sessionId
 //@access public
-export const fetchSingleVideo = async (req, res, next) => {
-  const { fileName } = req.params;
-  const range = req.headers.range;
+export const recordData = async (req, res, next) => {
+  const { sessionId } = req.params;
+  // Check if the session ID exists and is active
+  if (activeSessions[sessionId]) {
+    const { videoStream } = activeSessions[sessionId];
 
-  if (isDevelopment) {
-    if (!fileName) {
-      const err = new Error("File name is missing");
-      res.status(400);
-      next(err);
-    }
+    // Write the data chunk to the video stream\
+    const jsonString = req.body;
+    const binaryData = Buffer.from(jsonString.dataChunk, "base64");
 
-    if (range) {
-      const { fileStream, chunkSize, start, end, fileSize } = await fetchFile(
-        fileName,
-        range
-      );
+    const readableStream = Readable.from(binaryData);
 
-      const head = {
-        "Content-Type": "video/mp4",
-        "Content-Length": chunkSize,
-        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-        "Accepted-Ranges": "bytes",
-      };
-      res.writeHead(206, head);
-      fileStream.pipe(res);
-    } else {
-      const { file, fileSize } = await fetchFile(fileName);
-      const head = {
-        "Content-Type": "video/mp4",
-        "Content-Length": fileSize,
-      };
-      res.writeHead(200, head);
-      file.pipe(res);
-    }
+    readableStream.on("data", (chunk) => {
+      videoStream.write(chunk);
+    });
+
+    readableStream.on("end", () => {
+      console.log("Data written successfully");
+      res.status(200).json({ message: "Data received and saved" });
+    });
   } else {
-    // write code to use cloudinary
-    const video = await File.findOne({ fileName: fileName });
-    if (video) {
-      res.send(video.videoUrl);
-    } else {
-      res.status(404);
-      const err = new Error("Video not found");
-      next(err);
-    }
+    res.status(400).json({ error: "Invalid session ID" });
   }
 };
 
-//@desc Store uploaded video to local disk
-//@route POST /api/videos
+//@desc Stop recording and save data
+//@route POST /stop-recording/:sessionId
 //@access public
-export const uploadVideos = async (req, res, next) => {
-  if (!req.file) {
-    const err = new Error("Upload does not contain a file");
-    res.status(400);
-    next(err);
-  } else {
-    if (isDevelopment) {
-      res
-        .status(200)
-        .send({ message: "File uploaded successfully", data: req.file });
-    } else {
-      // store to cloudinary and create entry in DB
-	  const { video } = uploadCloud(req.file.path, req.file.originalname)
+export const stopRecordingData = async (req, res, next) => {
+  const { sessionId } = req.params;
+  // Check if the session ID exists and is active
+  if (activeSessions[sessionId]) {
+    const { videoStream } = activeSessions[sessionId];
 
-      const data = {
-		publicId: video.public_id,
-        fileName: req.file.originalname,
-        fileSize: req.file.size,
-        videoUrl: video.secure_url, // change to cloudinary secure url
-        mimeType: req.file.mimetype,
-      };
-      try {
-        const newVideo = new File({ ...data });
-        await newVideo.save();
-        res.status(201).send({ data: newVideo });
-      } catch (err) {
-        res.status(500);
-        next(err);
-      }
-    }
+    setTimeout(() => {
+      videoStream.end();
+      res.status(200).json({ message: "Recording stopped and saved" });
+    }, 5000);
+    // Close the video stream to finalize the video file
+  } else {
+    res.status(400).json({ error: "Invalid session ID" });
   }
 };

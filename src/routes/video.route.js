@@ -1,20 +1,22 @@
 import { Router } from "express";
 import {
-  fetchSingleVideo,
-  fetchVideos,
-  uploadVideos,
+  recordData,
+  startRecording,
+  stopRecordingData,
 } from "../controllers/file.controller.js";
-import uploadUtil from "../utils/fileUpload.js";
 
 const router = Router();
 
-// Fetch All videos
-router.get("/videos", fetchVideos);
+// Create recording session with backend
+router.post("/start-recording", startRecording);
 
-// Fetch single video
-router.get("/videos/:fileName", fetchSingleVideo);
+// Write chunks of recorded data to file
+router.post("/record-data/:sessionId", recordData);
 
-// Upload videos
-router.post("/videos", uploadUtil.single("video-uploads"), uploadVideos);
+// Finalize write to file and save video
+router.post("/stop-recording/:sessionId", stopRecordingData);
+
+// Fetch single video (not implemented)
+// router.get("/videos/:id", fetchSingleVideo);
 
 export default router;

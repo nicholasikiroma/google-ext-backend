@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Mongoose, Schema, model } from "mongoose";
 
 const videosSchema = new Schema({
   fileName: {
@@ -20,6 +20,10 @@ const videosSchema = new Schema({
   mimeType: {
     type: String,
     required: [true, "Provide mimetype"],
+  },
+  transcriptions: {
+    type: String,
+    required: [false],
   },
 });
 
