@@ -5,15 +5,16 @@ import {
   generateUniqueSessionId,
 } from "../utils/helpers.js";
 
+// An object to store active session IDs
+const activeSessions = {};
+
 //@desc Start recording session with backend
 //@route POST /start-recording
 //@access public
 export const startRecording = async (req, res, next) => {
   try {
-    // Generate a unique session ID (you can use a UUID library for this)
     const sessionId = generateUniqueSessionId();
 
-    // Store the session ID temporarily
     activeSessions[sessionId] = {
       videoStream: createVideoStream(sessionId),
       mimetype: req.body.mimetype,
@@ -34,7 +35,7 @@ export const recordData = async (req, res, next) => {
   if (activeSessions[sessionId]) {
     const { videoStream } = activeSessions[sessionId];
 
-    // Write the data chunk to the video stream\
+    // Write the data chunk to the video stream
     const jsonString = req.body;
     const binaryData = Buffer.from(jsonString.dataChunk, "base64");
 
@@ -64,6 +65,7 @@ export const stopRecordingData = async (req, res, next) => {
 
     setTimeout(() => {
       videoStream.end();
+      delete activeSessions[sessionId];
       res.status(200).json({ message: "Recording stopped and saved" });
     }, 5000);
     // Close the video stream to finalize the video file

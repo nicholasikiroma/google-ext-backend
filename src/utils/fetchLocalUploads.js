@@ -5,9 +5,8 @@ import { readdir } from "fs/promises";
 import { BASE_URL } from "../config/baseConfig.js";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(path.dirname(__filename));
-const __parentDirname = path.dirname(__dirname);
-const videoDirectory = path.join(__parentDirname, "storage");
+const __dirname = path.dirname(__filename);
+const videoDirectory = path.join(__dirname, "videos");
 
 /**
  * Fetches all videos from local storage.
