@@ -5,6 +5,7 @@ import {
   stopRecordingData,
   fetchSingleVideo,
   fetchVideos,
+  fetchVideoDetail,
 } from "../controllers/file.controller.js";
 
 const router = Router();
@@ -18,8 +19,11 @@ router.post("/record-data/:sessionId", recordData);
 // Finalize write to file and save video
 router.post("/stop-recording/:sessionId", stopRecordingData);
 
-// Fetch single video (not implemented)
+// play video
 router.get("/videos/:sessionId", fetchSingleVideo);
+
+// Fetch video detail
+router.get("/videos/:sessionId/details", fetchVideoDetail);
 
 router.get("/videos", fetchVideos);
 

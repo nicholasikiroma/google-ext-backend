@@ -175,6 +175,32 @@
     }
     ```
 
+1. **Fetch video details**
+   - **Endpoint**: `/videos/session:id/details`
+   - **Method**: GET
+   - **Request Format**:
+     - URL Parameter: sessionId (UUID) - The unique identifier of the uploaded video.
+   - **Response Format**:
+     - Status Code: 200 OK
+     - Body: JSON
+
+     ```json
+     {
+       "data": [
+        {
+          "sessionId": "3f928b0e-3773-481e-8c7f-458f9609462s",
+          "dateCreated": "date object",
+          "mimeType": "video/webm" or null,
+          "transcriptions": "Transcription text if any" or null,
+          "fileSize":"18289" or null,
+          "videoUrl": <link to video>
+        }
+       ]
+     }
+     ```
+
+   - **Description**: Fetch all videos
+
 **Additional Information**:
 
 - This API does not require authentication, as per the task requirements.

@@ -16,6 +16,7 @@ const transcribeVideo = async () => {
     queueName,
     async (video) => {
       console.log("[x] Received video file for transcription");
+
       const transcribedText = await transcribeAI(video);
       console.log("Processing...");
       if (transcribedText) {
