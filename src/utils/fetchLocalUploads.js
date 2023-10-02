@@ -20,16 +20,25 @@ export async function fetchAllVideos() {
     const files = await readdir(videoStorageDirectory);
     console.log(files);
 
-    const fileLinks = files.map((file) => {
-      return {
+    const fileLinks = [];
+
+    for (const file of files) {
+      const videoPath = path.join(videoStorageDirectory, file);
+      const size = statSync(videoPath);
+
+      if (size.size === 0) {
+        continue; // Skip files with size 0 bytes
+      }
+      const sessionId = file.split(".")[0];
+      fileLinks.push({
         filename: file,
-        StreamLink: `${BASE_URL}/api/videos/${encodeURIComponent(file)}`,
-      };
-    });
+        videoUrl: `${BASE_URL}/api/videos/${sessionId}`,
+      });
+    }
 
     return fileLinks;
   } catch (err) {
-    throw new Error("Failed to read directory: " + err.message);
+    throw new Error(err);
   }
 }
 

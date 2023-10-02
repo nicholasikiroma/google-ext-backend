@@ -87,7 +87,7 @@ export const stopRecordingData = async (req, res, next) => {
 };
 
 //@desc Return a single video based in Node enviroment
-//@route GET /api/videos/:id
+//@route GET /api/videos/:sessionId
 //@access public
 export const fetchSingleVideo = async (req, res, next) => {
   const { sessionId } = req.params;
