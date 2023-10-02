@@ -1,11 +1,12 @@
 import { Readable } from "stream";
 import { Buffer } from "buffer";
 import { BASE_URL } from "../config/baseConfig.js";
-import { fetchFile } from "../utils/fetchLocalUploads.js";
+import { fetchAllVideos, fetchFile } from "../utils/fetchLocalUploads.js";
 import {
   createVideoStream,
   generateUniqueSessionId,
 } from "../utils/helpers.js";
+import File from "../models/file.model.js";
 
 // An object to store active session IDs
 const activeSessions = {};
@@ -64,13 +65,19 @@ export const stopRecordingData = async (req, res, next) => {
   // Check if the session ID exists and is active
   if (activeSessions[sessionId]) {
     const { videoStream } = activeSessions[sessionId];
+    const data = {
+      sessionId: sessionId,
+      videoUrl: `${BASE_URL}/api/videos/${sessionId}`,
+      mimeType: "video/webm",
+    };
+    const recording = new File({ ...data });
+    await recording.save();
 
     setTimeout(() => {
       videoStream.end();
-
-      res.status(200).json({
+      res.status(200).send({
         message: "Recording stopped and saved",
-        videoURL: `${BASE_URL}/api/videos/${sessionId}`,
+        data: recording,
       });
     }, 5000);
     // Close the video stream to finalize the video file
@@ -85,7 +92,9 @@ export const stopRecordingData = async (req, res, next) => {
 export const fetchSingleVideo = async (req, res, next) => {
   const { sessionId } = req.params;
   const range = req.headers.range;
-  if (activeSessions[sessionId]) {
+
+  const video = await File.findOne({ sessionId: sessionId });
+  if (video) {
     const fileName = sessionId + "." + "webm";
     if (range) {
       const { fileStream, chunkSize, start, end, fileSize } = await fetchFile(
@@ -111,7 +120,24 @@ export const fetchSingleVideo = async (req, res, next) => {
       file.pipe(res);
     }
   } else {
-    const err = new Error("Session does not exist");
+    const err = new Error("Recording Session does not exist");
+    res.status(400);
+    next(err);
+  }
+};
+
+//@desc Return all locally stored videos to client
+//@route GET /api/videos
+//@access public
+export const fetchVideos = async (req, res, next) => {
+  try {
+    const videos = await fetchAllVideos();
+    if (videos) {
+      return res.status(200).send({ data: videos });
+    } else {
+      res.status(400).send({ message: "videos not found" });
+    }
+  } catch (err) {
     res.status(400);
     next(err);
   }

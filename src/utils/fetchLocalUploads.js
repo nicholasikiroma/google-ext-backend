@@ -17,7 +17,7 @@ const videoStorageDirectory = path.join(__dirname, "videos");
  */
 export async function fetchAllVideos() {
   try {
-    const files = await readdir(videoDirectory);
+    const files = await readdir(videoStorageDirectory);
     console.log(files);
 
     const fileLinks = files.map((file) => {

@@ -2,11 +2,74 @@
 
 **Description**: This API allows users to upload videos and play them through a web interface.
 
-**Base URL**: <http://localhost:3000/api>
+**Base URL**: <https://5092-102-90-47-254.ngrok-free.app/api>
 
 **Endpoints**:
 
-1. **Start recording**
+1. **Fetch all Recordings**
+   - **Endpoint**: `/videos`
+   - **Method**: GET
+   - **Request Format**:
+     - URL Parameter: sessionId (UUID) - The unique identifier of the uploaded video.
+   - **Response Format**:
+     - Status Code: 200 OK
+     - Body: JSON
+
+     ```json
+     {
+       "data": [
+        {
+          "sessionId": "3f928b0e-3773-481e-8c7f-458f9609462s",
+          "dateCreated": "date object",
+          "mimeType": "video/webm" or null,
+          "transcriptions": "Transcription text if any" or null,
+          "fileSize":"18289" or null,
+          "videoUrl": <link to video>
+        }
+       ]
+     }
+     ```
+
+   - **Description**: Fetch all videos
+
+2. **Fetch one video**
+   - **Endpoint**: `/videos/sessionId`
+   - **Method**: GET
+   - **Request Format**:
+     - URL Parameter: sessionId (UUID) - The unique identifier of the uploaded video.
+   - **Response Format**:
+     - Status Code: 200 OK
+     - Body: Video stream
+
+   - **Description**: Fetch one
+
+3. **Stop Recording**
+   - **Endpoint**: `/stop-recording/sessionId`
+   - **Method**: POST
+   - **Request Format**:
+     - URL Parameter: sessionId (UUID) - The unique identifier of the uploaded video.
+   - **Response Format**:
+     - Status Code: 200 OK
+     - Body: No
+
+     ```json
+     {
+       "message": "Recording stopped and saved",
+       "data":
+       [
+        sessionId": "3f928b0e-3773-481e-8c7f-458f9609462s",
+        "dateCreated": "date object",
+        "mimeType": "video/webm(or null)",
+        "transcriptions": "Transcription text if any(or null)",
+        "fileSize":"18289(or null)",
+        "videoUrl": "<link to video>"
+      ],
+     }
+     ```
+
+   - **Description**: Retrieve a vidoe.
+
+4. **Start recording**
    - **Endpoint**: `/start-recording`
    - **Method**: POST
    - **Request Format**:
@@ -30,7 +93,7 @@
 
    - **Description**: Generate upload session with server.
 
-2. **Record video chunks**
+5. **Record video chunks**
    - **Endpoint**: `/record-data/:sessionId`
    - **Method**: POST
    - **Request Format**:
@@ -54,23 +117,6 @@
      ```
 
    - **Description**: Send video chunks
-
-3. **Stop Recording**
-   - **Endpoint**: `/stop-recording/sessionId`
-   - **Method**: POST
-   - **Request Format**:
-     - URL Parameter: sessionId (UUID) - The unique identifier of the uploaded video.
-   - **Response Format**:
-     - Status Code: 200 OK
-     - Body: No
-
-     ```json
-     {
-       "message": "Recording stopped and saved"
-     }
-     ```
-
-   - **Description**: Retrieve a vidoe.
 
 **Example Usage**:
 

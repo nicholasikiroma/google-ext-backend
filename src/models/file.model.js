@@ -1,7 +1,7 @@
 import { Mongoose, Schema, model } from "mongoose";
 
 const videosSchema = new Schema({
-  fileName: {
+  sessionId: {
     type: String,
     required: [true, "'Name' field cannot be blank"],
   },
@@ -11,7 +11,7 @@ const videosSchema = new Schema({
   },
   fileSize: {
     type: Number,
-    required: [true, "File size must be provided"],
+    required: [false, "File size must be provided"],
   },
   videoUrl: {
     type: String,
@@ -19,7 +19,7 @@ const videosSchema = new Schema({
   },
   mimeType: {
     type: String,
-    required: [true, "Provide mimetype"],
+    required: [false, "Provide mimetype"],
   },
   transcriptions: {
     type: String,
