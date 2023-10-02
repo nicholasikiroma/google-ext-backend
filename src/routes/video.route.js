@@ -6,6 +6,7 @@ import {
   fetchSingleVideo,
   fetchVideos,
   fetchVideoDetail,
+  deleteRecord,
 } from "../controllers/file.controller.js";
 
 const router = Router();
@@ -26,5 +27,7 @@ router.get("/videos/:sessionId", fetchSingleVideo);
 router.get("/videos/:sessionId/details", fetchVideoDetail);
 
 router.get("/videos", fetchVideos);
+
+router.get("/recording/:sessionId", deleteRecord);
 
 export default router;

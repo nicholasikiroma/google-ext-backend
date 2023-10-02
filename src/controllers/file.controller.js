@@ -161,3 +161,21 @@ export const fetchVideoDetail = async (req, res, next) => {
     next(err);
   }
 };
+
+//@desc Return details of a video
+//@route GET /api/videos/:sessionId/details
+//@access public
+export const deleteRecord = async (req, res, next) => {
+  const { sessionId } = req.params;
+  try {
+    const video = await File.findOneAndDelete({ sessionId: sessionId });
+    if (video) {
+      res.status(200).send({ data: video });
+    } else {
+      res.status(404).send({ error: "video not found" });
+    }
+  } catch (err) {
+    res.status(400);
+    next(err);
+  }
+};
