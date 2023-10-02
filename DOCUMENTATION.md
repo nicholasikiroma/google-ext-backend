@@ -2,7 +2,7 @@
 
 **Description**: This API allows users to upload videos and play them through a web interface.
 
-**Base URL**: <https://5092-102-90-47-254.ngrok-free.app/api>
+**Base URL**: <https://recorder-service.onrender.com>
 
 **Endpoints**:
 
