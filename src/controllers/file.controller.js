@@ -131,7 +131,8 @@ export const fetchSingleVideo = async (req, res, next) => {
 //@access public
 export const fetchVideos = async (req, res, next) => {
   try {
-    const videos = await fetchAllVideos();
+    const videos = await File.find();
+
     if (videos) {
       return res.status(200).send({ data: videos });
     } else {
