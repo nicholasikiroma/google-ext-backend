@@ -1,5 +1,7 @@
 import { Readable } from "stream";
 import { Buffer } from "buffer";
+import { BASE_URL } from "../config/baseConfig.js";
+import { fetchFile } from "../utils/fetchLocalUploads.js";
 import {
   createVideoStream,
   generateUniqueSessionId,
@@ -65,11 +67,52 @@ export const stopRecordingData = async (req, res, next) => {
 
     setTimeout(() => {
       videoStream.end();
-      delete activeSessions[sessionId];
-      res.status(200).json({ message: "Recording stopped and saved" });
+
+      res.status(200).json({
+        message: "Recording stopped and saved",
+        videoURL: `${BASE_URL}/api/videos/${sessionId}`,
+      });
     }, 5000);
     // Close the video stream to finalize the video file
   } else {
     res.status(400).json({ error: "Invalid session ID" });
+  }
+};
+
+//@desc Return a single video based in Node enviroment
+//@route GET /api/videos/:id
+//@access public
+export const fetchSingleVideo = async (req, res, next) => {
+  const { sessionId } = req.params;
+  const range = req.headers.range;
+  if (activeSessions[sessionId]) {
+    const fileName = sessionId + "." + "webm";
+    if (range) {
+      const { fileStream, chunkSize, start, end, fileSize } = await fetchFile(
+        fileName,
+        range
+      );
+
+      const head = {
+        "Content-Type": "video/webm",
+        "Content-Length": chunkSize,
+        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+        "Accepted-Ranges": "bytes",
+      };
+      res.writeHead(206, head);
+      fileStream.pipe(res);
+    } else {
+      const { file, fileSize } = await fetchFile(fileName);
+      const head = {
+        "Content-Type": "video/webm",
+        "Content-Length": fileSize,
+      };
+      res.writeHead(200, head);
+      file.pipe(res);
+    }
+  } else {
+    const err = new Error("Session does not exist");
+    res.status(400);
+    next(err);
   }
 };

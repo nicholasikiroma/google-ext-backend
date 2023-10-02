@@ -3,6 +3,7 @@ import {
   recordData,
   startRecording,
   stopRecordingData,
+  fetchSingleVideo,
 } from "../controllers/file.controller.js";
 
 const router = Router();
@@ -17,6 +18,6 @@ router.post("/record-data/:sessionId", recordData);
 router.post("/stop-recording/:sessionId", stopRecordingData);
 
 // Fetch single video (not implemented)
-// router.get("/videos/:id", fetchSingleVideo);
+router.get("/videos/:sessionId", fetchSingleVideo);
 
 export default router;

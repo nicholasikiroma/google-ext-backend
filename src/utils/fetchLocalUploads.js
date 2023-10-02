@@ -4,9 +4,10 @@ import path from "path";
 import { readdir } from "fs/promises";
 import { BASE_URL } from "../config/baseConfig.js";
 
+// Define a storage directory for video files
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const videoDirectory = path.join(__dirname, "videos");
+const __dirname = path.dirname(path.dirname(__filename));
+const videoStorageDirectory = path.join(__dirname, "videos");
 
 /**
  * Fetches all videos from local storage.
@@ -43,7 +44,8 @@ export async function fetchAllVideos() {
  * @throws {Error} If the file is not found or if there is an error while processing the request.
  */
 export async function fetchFile(fileName, range = null) {
-  const videoPath = path.join(videoDirectory, fileName);
+  const videoPath = path.join(videoStorageDirectory, fileName);
+  console.log(videoPath);
   if (existsSync(videoPath)) {
     const stat = statSync(videoPath);
     const fileSize = stat.size;
