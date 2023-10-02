@@ -8,6 +8,11 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
+/**
+ *
+ * @param {*} filename
+ * @returns
+ */
 async function transcribeAI(filename) {
   try {
     const transcript = await openai.createTranscription(

@@ -6,4 +6,4 @@ export const isDevelopment = process.env.NODE_ENV === "development";
 export const BASE_URL = process.env.BASE_URL;
 export const PORT = process.env.PORT || 3000;
 export const API_KEY = process.env.API_KEY;
-export const RABBITMQ_URL = Process.env.RABBITMQ_URL;
+export const RABBITMQ_URL = process.env.RABBITMQ_URL;

@@ -3,6 +3,9 @@ import { connect } from "amqplib";
 const queueName = "VideoTrancription";
 const video = null; //get video path
 
+/**
+ *
+ */
 const sendVideo = async () => {
   const connection = await connect("amqp://localhost");
   const channel = await connection.createChannel();
