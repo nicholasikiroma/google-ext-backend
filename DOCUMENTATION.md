@@ -124,7 +124,7 @@
   - Request:
 
     ```json
-    POST https://your-api-domain.com/api/start-recording
+    POST https://api-domain.com/api/start-recording
     Content-Type: application/json
     Body: mimetype (ex "video/webm")
     ```
