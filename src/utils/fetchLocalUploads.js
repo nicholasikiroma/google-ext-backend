@@ -3,6 +3,8 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { readdir } from "fs/promises";
 import { BASE_URL } from "../config/baseConfig.js";
+import { logger } from "../config/logger.js";
+import { APIError, HttpStatusCode } from "./error.js";
 
 // Define a storage directory for video files
 const __filename = fileURLToPath(import.meta.url);
@@ -18,8 +20,6 @@ const videoStorageDirectory = path.join(__dirname, "videos");
 export async function fetchAllVideos() {
   try {
     const files = await readdir(videoStorageDirectory);
-    console.log(files);
-
     const fileLinks = [];
 
     for (const file of files) {
@@ -38,7 +38,7 @@ export async function fetchAllVideos() {
 
     return fileLinks;
   } catch (err) {
-    throw new Error(err);
+    next(err);
   }
 }
 
@@ -54,10 +54,18 @@ export async function fetchAllVideos() {
  */
 export async function fetchFile(fileName, range = null) {
   const videoPath = path.join(videoStorageDirectory, fileName);
-  console.log(videoPath);
   if (existsSync(videoPath)) {
+    logger.info("File exists");
     const stat = statSync(videoPath);
     const fileSize = stat.size;
+    if (fileSize === 0) {
+      throw new APIError(
+        "INTERNAL SERVER ERROR",
+        HttpStatusCode.INTERNAL_SERVER,
+        true,
+        "File is empty or corrupted"
+      );
+    }
     if (range) {
       const parts = range.replace(/bytes=/, "").split("-");
       const start = parseInt(parts[0], 10);
@@ -71,6 +79,11 @@ export async function fetchFile(fileName, range = null) {
       return { file, fileSize };
     }
   } else {
-    return "file not found";
+    throw new APIError(
+      "NOT FOUND",
+      HttpStatusCode.NOT_FOUND,
+      true,
+      "Recording not found"
+    );
   }
 }

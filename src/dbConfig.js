@@ -1,18 +1,17 @@
 import mongoose from "mongoose";
 import { DB_URL, PROD_DB_URL, isDevelopment } from "./config/baseConfig.js";
+import { logger } from "./config/logger.js";
 let connectDB = "";
 
 if (isDevelopment) {
   connectDB = async () => {
     try {
       const db = await mongoose.connect(DB_URL);
-      console.log(
-        "Database connected: ",
-        db.connection.host,
-        db.connection.name
+      logger.info(
+        `Database connected: ${db.connection.host} ${db.connection.name}`
       );
     } catch (err) {
-      console.log(err);
+      logger.error(err);
       process.exit(1);
     }
   };
@@ -20,14 +19,13 @@ if (isDevelopment) {
   connectDB = async () => {
     try {
       const db = await mongoose.connect(PROD_DB_URL);
-      console.log(
+      logger.info(
         "Database connected: ",
         db.connection.host,
         db.connection.name
       );
     } catch (err) {
-      console.log(err);
-      process.exit(1);
+      logger.error(err);
     }
   };
 }

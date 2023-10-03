@@ -7,6 +7,9 @@ import {
   generateUniqueSessionId,
 } from "../utils/helpers.js";
 import File from "../models/file.model.js";
+import { APIError } from "../utils/error.js";
+import { HttpStatusCode } from "../utils/error.js";
+import { logger } from "../config/logger.js";
 
 // An object to store active session IDs
 const activeSessions = {};
@@ -22,8 +25,8 @@ export const startRecording = async (req, res, next) => {
       videoStream: createVideoStream(sessionId),
       mimetype: req.body.mimetype,
     };
-
-    res.status(200).json({ sessionId });
+    logger.info("File created for recording session");
+    res.status(HttpStatusCode.OK).json({ sessionId });
   } catch (err) {
     next(err);
   }
@@ -40,20 +43,36 @@ export const recordData = async (req, res, next) => {
 
     // Write the data chunk to the video stream
     const jsonString = req.body;
+
+    logger.info("Convert data to binary...");
     const binaryData = Buffer.from(jsonString.dataChunk, "base64");
 
+    logger.info("Read binary stream");
     const readableStream = Readable.from(binaryData);
 
     readableStream.on("data", (chunk) => {
+      logger.info("write incoming chunk to file");
       videoStream.write(chunk);
     });
 
     readableStream.on("end", () => {
-      console.log("Data written successfully");
-      res.status(200).json({ message: "Data received and saved" });
+      logger.info("Data written successfully");
+      res
+        .status(HttpStatusCode.OK)
+        .json({ message: "Data received and saved" });
+
+      readableStream.on("error", (error) => {
+        logger.fatal("Failed to write chunk to file", error);
+        next(error);
+      });
     });
   } else {
-    res.status(400).json({ error: "Invalid session ID" });
+    throw new APIError(
+      "BAD REQUEST",
+      HttpStatusCode.BAD_REQUEST,
+      true,
+      "Invalid session ID"
+    );
   }
 };
 
@@ -71,18 +90,30 @@ export const stopRecordingData = async (req, res, next) => {
       mimeType: "video/webm",
     };
     const recording = new File({ ...data });
-    await recording.save();
-
+    try {
+      await recording.save();
+      logger.info("Saving file to DB...");
+    } catch (error) {
+      logger.error("Error occured during save", error);
+      next(error);
+    }
+    logger.info("Writing final chunk to file");
     setTimeout(() => {
       videoStream.end();
-      res.status(200).send({
+      logger.info("File saved successfully");
+      res.status(HttpStatusCode.OK).send({
         message: "Recording stopped and saved",
         data: recording,
       });
     }, 5000);
     // Close the video stream to finalize the video file
   } else {
-    res.status(400).json({ error: "Invalid session ID" });
+    throw new APIError(
+      "BAD REQUEST",
+      HttpStatusCode.BAD_REQUEST,
+      true,
+      "Invalid session ID"
+    );
   }
 };
 
@@ -94,7 +125,7 @@ export const fetchSingleVideo = async (req, res, next) => {
   const range = req.headers.range;
 
   const video = await File.findOne({ sessionId: sessionId });
-  if (video) {
+  if (video !== undefined && video !== null) {
     const fileName = sessionId + "." + "webm";
     if (range) {
       const { fileStream, chunkSize, start, end, fileSize } = await fetchFile(
@@ -102,27 +133,57 @@ export const fetchSingleVideo = async (req, res, next) => {
         range
       );
 
-      const head = {
-        "Content-Type": "video/webm",
-        "Content-Length": chunkSize,
-        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-        "Accepted-Ranges": "bytes",
-      };
-      res.writeHead(206, head);
-      fileStream.pipe(res);
+      // Validate that the destructured data is not undefined
+      if (
+        fileStream !== undefined &&
+        chunkSize !== undefined &&
+        start !== undefined &&
+        end !== undefined &&
+        fileSize !== undefined
+      ) {
+        const head = {
+          "Content-Type": "video/webm",
+          "Content-Length": chunkSize,
+          "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+          "Accepted-Ranges": "bytes",
+        };
+        res.writeHead(206, head);
+        fileStream.pipe(res);
+      } else {
+        throw new APIError(
+          "INTERNAL SERVER ERROR",
+          HttpStatusCode.INTERNAL_SERVER,
+          true,
+          "Failed to fetch video file data"
+        );
+      }
     } else {
       const { file, fileSize } = await fetchFile(fileName);
-      const head = {
-        "Content-Type": "video/webm",
-        "Content-Length": fileSize,
-      };
-      res.writeHead(200, head);
-      file.pipe(res);
+
+      // Validate that the destructured data is not undefined
+      if (file !== undefined && fileSize !== undefined) {
+        const head = {
+          "Content-Type": "video/webm",
+          "Content-Length": fileSize,
+        };
+        res.writeHead(HttpStatusCode.OK, head);
+        file.pipe(res);
+      } else {
+        throw new APIError(
+          "INTERNAL SERVER ERROR",
+          HttpStatusCode.INTERNAL_SERVER,
+          true,
+          "Failed to fetch video file data"
+        );
+      }
     }
   } else {
-    const err = new Error("Recording Session does not exist");
-    res.status(400);
-    next(err);
+    throw new APIError(
+      "BAD REQUEST",
+      HttpStatusCode.BAD_REQUEST,
+      true,
+      "Recording Session not found"
+    );
   }
 };
 
@@ -139,7 +200,6 @@ export const fetchVideos = async (req, res, next) => {
       res.status(400).send({ message: "videos not found" });
     }
   } catch (err) {
-    res.status(400);
     next(err);
   }
 };
@@ -149,12 +209,25 @@ export const fetchVideos = async (req, res, next) => {
 //@access public
 export const fetchVideoDetail = async (req, res, next) => {
   const { sessionId } = req.params;
+  if (!sessionId) {
+    throw new APIError(
+      "BAD REQUEST",
+      HttpStatusCode.BAD_REQUEST,
+      true,
+      "sessionId is missing"
+    );
+  }
   try {
     const video = await File.findOne({ sessionId: sessionId });
     if (video) {
-      res.status(200).send({ data: video });
+      res.status(HttpStatusCode.OK).send({ data: video });
     } else {
-      res.status(404).send({ error: "video not found" });
+      throw new APIError(
+        "NOT FOUND",
+        HttpStatusCode.NOT_FOUND,
+        true,
+        "Recording not foun"
+      );
     }
   } catch (err) {
     res.status(400);
@@ -167,6 +240,14 @@ export const fetchVideoDetail = async (req, res, next) => {
 //@access public
 export const deleteRecord = async (req, res, next) => {
   const { sessionId } = req.params;
+  if (!sessionId) {
+    throw new APIError(
+      "BAD REQUEST",
+      HttpStatusCode.BAD_REQUEST,
+      true,
+      "SessionId is missing"
+    );
+  }
   try {
     const video = await File.findOneAndDelete({ sessionId: sessionId });
     if (video) {
@@ -175,7 +256,6 @@ export const deleteRecord = async (req, res, next) => {
       res.status(404).send({ error: "video not found" });
     }
   } catch (err) {
-    res.status(400);
     next(err);
   }
 };
