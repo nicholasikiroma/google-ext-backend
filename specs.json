@@ -1,0 +1,331 @@
+{
+  "openapi": "3.0.0",
+  "servers": [
+    {
+      "description": "Production Server",
+      "url": "https://recorder-service.onrender.com/api"
+    }
+  ],
+  "info": {
+    "title": "Screen Recorder Plugin API",
+    "description": "This a REST API for a chrome extenstion",
+    "contact": {
+      "email": "nicholasikiroma@gmail.com"
+    },
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "developer",
+      "description": "Operations available to developers"
+    }
+  ],
+  "paths": {
+    "/videos": {
+      "get": {
+        "summary": "Fetch all Recordings",
+        "description": "Fetch all videos",
+        "operationId": "fetchRecordings",
+        "tags": [
+          "developer"
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The unique identifier of the uploaded video."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/File"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/{sessionId}": {
+      "get": {
+        "summary": "Fetch one video",
+        "description": "Fetch one",
+        "operationId": "fetchOneRecording",
+        "tags": [
+          "developer"
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The unique identifier of the uploaded video."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "video/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stop-recording/{sessionId}": {
+      "post": {
+        "summary": "Stop Recording",
+        "description": "Retrieve a video.",
+        "operationId": "stopRecording",
+        "tags": [
+          "developer"
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The unique identifier of the uploaded video."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/File"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/start-recording": {
+      "post": {
+        "summary": "Start recording",
+        "description": "Generate upload session with server.",
+        "operationId": "startRecording",
+        "tags": [
+          "developer"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mimetype": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sessionId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/record-data/{sessionId}": {
+      "post": {
+        "summary": "Record video chunks",
+        "description": "Send video chunks",
+        "operationId": "recordChunks",
+        "tags": [
+          "developer"
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The unique identifier of the uploaded video."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dataChunk": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/{sessionId}/details": {
+      "get": {
+        "summary": "Fetch video details",
+        "description": "Fetch detail of video",
+        "operationId": "fetchVideoDetail",
+        "tags": [
+          "developer"
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The unique identifier of the uploaded video."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/File"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "File": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "objectId",
+            "example": "594ced02ed345b2b049222c5",
+            "description": "The unique identifier for the Person"
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "1bbdfa55-2d1c-453d-af40-10a07266c035",
+            "description": "ID of recording session"
+          },
+          "fileSize": {
+            "type": "integer",
+            "example": 123,
+            "description": "Size of recording"
+          },
+          "mimeType": {
+            "type": "string",
+            "example": "video/webm",
+            "description": "Mime Type of file"
+          },
+          "videoUrl": {
+            "type": "string",
+            "example": "https://recorder-service.onrender.com/api/videos/a234n-djsj-4itinf",
+            "description": "Link to view video"
+          },
+          "transcriptions": {
+            "type": "string",
+            "example": "I am a transcription",
+            "description": "video transaction text"
+          },
+          "dateCreated": {
+            "type": "string",
+            "format": "datetime",
+            "example": "2023-02-19T14:38:47.000Z",
+            "description": "Mime Type of file"
+          }
+        },
+        "required": [
+          "sessionId",
+          "videoUrl"
+        ]
+      }
+    }
+  }
+}
