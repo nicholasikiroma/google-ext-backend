@@ -1,4 +1,4 @@
-import { Mongoose, Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const videosSchema = new Schema({
   sessionId: {
@@ -24,6 +24,7 @@ const videosSchema = new Schema({
   transcriptions: {
     type: String,
     required: [false],
+    default: null,
   },
 });
 

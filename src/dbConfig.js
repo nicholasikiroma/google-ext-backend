@@ -24,6 +24,7 @@ if (isDevelopment) {
         db.connection.host,
         db.connection.name
       );
+      return db;
     } catch (err) {
       logger.error(err);
     }

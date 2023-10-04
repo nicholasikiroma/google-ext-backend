@@ -1,31 +1,65 @@
+import { config } from "dotenv";
 import { connect } from "amqplib";
-import transcribeAI from "./transcribe";
+import OpenAI from "openai";
+import { DB_URL, RABBITMQ_URL } from "../config/baseConfig.js";
+import fs from "fs";
+import File from "../models/file.model.js";
+import mongoose from "mongoose";
 
-const queueName = "VideoTrancription";
+config({ path: "../../.env" });
+await mongoose.connect(process.env.DB_URL);
 
-/**
- *
- */
-const transcribeVideo = async () => {
-  const connection = await connect("amqp://localhost");
+const queueName = "transcribeQueue";
+
+const openai = new OpenAI({
+  apiKey: process.env.API_KEY,
+});
+console.log("Connected to open AI");
+
+async function transcribeAI(videoPath) {
+  const transcription = await openai.audio.transcriptions.create({
+    file: fs.createReadStream(videoPath),
+    model: "whisper-1",
+  });
+
+  return transcription.text;
+}
+
+const consumeVideo = async () => {
+  const connection = await connect(process.env.RABBITMQ_URL);
   const channel = await connection.createChannel();
   await channel.assertQueue(queueName, { durable: true });
-  console.log(`waiting for message in queue: ${queueName}`);
+  console.log(`Waiting for message in queue: ${queueName}`);
   channel.prefetch(1);
   channel.consume(
     queueName,
-    async (video) => {
+    async (msg) => {
+      // Process video here
       console.log("[x] Received video file for transcription");
+      const data = JSON.parse(msg.content);
+      const sessionId = data.sessionId;
+      const videoPath = data.videoPath;
+      console.log(data);
+      try {
+        const transcribedText = await transcribeAI(videoPath);
+        console.log("Awaiting transcription results");
+        console.log("\nTranscription: ", transcribedText);
 
-      const transcribedText = await transcribeAI(video);
-      console.log("Processing...");
-      if (transcribedText) {
-        console.log("Trancription completed: ", transcribedText);
-        channel.ack(video);
+        const recording = await File.findOneAndUpdate(
+          { sessionId: sessionId },
+          { transcriptions: transcribedText },
+          { new: true }
+        );
+        console.log("Transcriptions and update complete", recording);
+        channel.ack(msg);
+      } catch (error) {
+        console.error("Error processing recording: ", error);
+        // An error occurred, negatively acknowledge and requeue the message
+        channel.nack(msg);
       }
     },
     { noAck: false }
   );
 };
 
-transcribeVideo();
+consumeVideo();

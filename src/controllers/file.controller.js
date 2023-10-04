@@ -10,9 +10,16 @@ import File from "../models/file.model.js";
 import { APIError } from "../utils/error.js";
 import { HttpStatusCode } from "../utils/error.js";
 import { logger } from "../config/logger.js";
+import queueVideo from "../backgroundJob/taskQueue.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // An object to store active session IDs
 const activeSessions = {};
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(path.dirname(__filename));
+const videoStorageDirectory = path.join(__dirname, "videos");
 
 //@desc Start recording session with backend
 //@route POST /start-recording
@@ -101,11 +108,21 @@ export const stopRecordingData = async (req, res, next) => {
     setTimeout(() => {
       videoStream.end();
       logger.info("File saved successfully");
-      res.status(HttpStatusCode.OK).send({
-        message: "Recording stopped and saved",
-        data: recording,
-      });
-    }, 5000);
+    }, 4000);
+
+    const msg = {
+      sessionId: sessionId,
+      videoPath:
+        `${path.join(videoStorageDirectory)}` + "/" + `${sessionId}` + ".webm",
+    };
+
+    logger.info("Video for queuing: ", msg.sessionId, msg.videoPath);
+    await queueVideo("transcribeQueue", JSON.stringify(msg));
+
+    res.status(HttpStatusCode.OK).send({
+      message: "Recording stopped and saved",
+      data: recording,
+    });
     // Close the video stream to finalize the video file
   } else {
     throw new APIError(
