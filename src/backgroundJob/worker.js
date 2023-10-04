@@ -7,23 +7,9 @@ import File from "../models/file.model.js";
 import mongoose from "mongoose";
 
 config({ path: "../../.env" });
+
 await mongoose.connect(process.env.DB_URL);
-
 const queueName = "transcribeQueue";
-
-const openai = new OpenAI({
-  apiKey: process.env.API_KEY,
-});
-console.log("Connected to open AI");
-
-async function transcribeAI(videoPath) {
-  const transcription = await openai.audio.transcriptions.create({
-    file: fs.createReadStream(videoPath),
-    model: "whisper-1",
-  });
-
-  return transcription.text;
-}
 
 const consumeVideo = async () => {
   const connection = await connect(process.env.RABBITMQ_URL);
@@ -61,5 +47,20 @@ const consumeVideo = async () => {
     { noAck: false }
   );
 };
+
+// Transcriptions
+const openai = new OpenAI({
+  apiKey: process.env.API_KEY,
+});
+console.log("Connected to open AI");
+
+async function transcribeAI(videoPath) {
+  const transcription = await openai.audio.transcriptions.create({
+    file: fs.createReadStream(videoPath),
+    model: "whisper-1",
+  });
+
+  return transcription.text;
+}
 
 consumeVideo();
