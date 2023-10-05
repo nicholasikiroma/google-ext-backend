@@ -1,7 +1,6 @@
 import { config } from "dotenv";
 import { connect } from "amqplib";
 import OpenAI from "openai";
-import { DB_URL, RABBITMQ_URL } from "../config/baseConfig.js";
 import fs from "fs";
 import File from "../models/file.model.js";
 import mongoose from "mongoose";
@@ -23,9 +22,8 @@ const consumeVideo = async () => {
       // Process video here
       console.log("[x] Received video file for transcription");
       const data = JSON.parse(msg.content);
-      const sessionId = data.sessionId;
-      const videoPath = data.videoPath;
-      console.log(data);
+      const { sessionId, videoPath } = data;
+
       try {
         const transcribedText = await transcribeAI(videoPath);
         console.log("Awaiting transcription results");
@@ -36,6 +34,7 @@ const consumeVideo = async () => {
           { transcriptions: transcribedText },
           { new: true }
         );
+
         console.log("Transcriptions and update complete", recording);
         channel.ack(msg);
       } catch (error) {
@@ -52,9 +51,9 @@ const consumeVideo = async () => {
 const openai = new OpenAI({
   apiKey: process.env.API_KEY,
 });
-console.log("Connected to open AI");
 
 async function transcribeAI(videoPath) {
+  console.log("Sending file to OpenAI");
   const transcription = await openai.audio.transcriptions.create({
     file: fs.createReadStream(videoPath),
     model: "whisper-1",
