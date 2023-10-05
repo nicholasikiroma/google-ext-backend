@@ -8,7 +8,7 @@
   ],
   "info": {
     "title": "Screen Recorder Plugin API",
-    "description": "This a REST API for a chrome extenstion",
+    "description": "This a REST API for a Chrome extension",
     "contact": {
       "email": "nicholasikiroma@gmail.com"
     },
@@ -16,7 +16,7 @@
   },
   "tags": [
     {
-      "name": "developer",
+      "name": "Developer",
       "description": "Operations available to developers"
     }
   ],
@@ -35,7 +35,7 @@
             "in": "query",
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "UUID"
             },
             "description": "The unique identifier of the uploaded video."
           }
@@ -77,7 +77,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "UUID"
             },
             "description": "The unique identifier of the uploaded video."
           }
@@ -111,7 +111,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "UUID"
             },
             "description": "The unique identifier of the uploaded video."
           }
@@ -195,7 +195,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "UUID"
             },
             "description": "The unique identifier of the uploaded video."
           }
@@ -249,7 +249,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "UUID"
             },
             "description": "The unique identifier of the uploaded video."
           }
@@ -290,7 +290,7 @@
           },
           "sessionId": {
             "type": "string",
-            "format": "uuid",
+            "format": "UUID",
             "example": "1bbdfa55-2d1c-453d-af40-10a07266c035",
             "description": "ID of recording session"
           },
