@@ -2,7 +2,7 @@
 
 ## Description
 
-Handles storage and retrieval of videos saved on cloud environment.
+
 
 ## Usage
 
