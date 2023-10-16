@@ -1,8 +1,4 @@
-# Backend For Chrome Extension
-
-## Description
-
-
+# Screen Recorder API
 
 ## Usage
 
